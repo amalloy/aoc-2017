@@ -22,25 +22,39 @@ move dir (Pos y x) = case dir of
   Right -> Pos y (x + 1)
   Down -> Pos (y - 1) x
 
-spiral :: Int -> State MapGrid Position
-spiral goal = do
-  (Grid i dir pos m) <- get
-  if i == goal
-    then return pos
-    else do
-      let turned = turnLeft dir
-          left = move turned pos
-          forward = move dir pos
-          (dir', pos') = if M.member left m
-                         then (dir, forward)
-                         else (turned, left)
-      put $ Grid (i + 1) dir' pos' (M.insert pos i m)
-      spiral goal
+spiral :: State MapGrid Int -> State MapGrid (Maybe a) -> State MapGrid a
+spiral label result = go
+  where go = do
+          newValue <- label
+          (Grid i dir pos m) <- get
+          put $ Grid i dir pos (M.insert pos newValue m)
+          done <- result
+          case done of
+            Just x -> return x
+            Nothing -> do
+              let turned = turnLeft dir
+                  left = move turned pos
+                  forward = move dir pos
+                  (dir', pos') = if M.member left m
+                                 then (dir, forward)
+                                 else (turned, left)
+              put $ Grid (i + 1) dir' pos' (M.insert pos i m)
+              go
+
+solve :: State MapGrid Int -> State MapGrid (Maybe a) -> a
+solve label result = evalState (spiral label result)
+                     (Grid 1 Down (Pos 0 0) M.empty)
 
 part1 :: Int -> Int
-part1 goal = let (Pos y x) = evalState (spiral goal)
-                             (Grid 1 Down (Pos 0 0) M.empty)
-             in abs y + abs x
+part1 goal = solve label result
+  where label = do
+          (Grid i _ _ _) <- get
+          return i
+        result = do
+          (Grid i _ (Pos y x) _) <- get
+          if i == goal
+            then return $ Just (abs x + abs y)
+            else return Nothing
 
 main :: IO ()
 main = interact $ show . part1 . read
