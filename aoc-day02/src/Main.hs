@@ -1,5 +1,7 @@
 module Main where
 
+solve :: [[Int]] -> Int
+solve rows = sum [maximum xs - minimum xs | xs <- rows]
+
 main :: IO ()
-main = do
-  putStrLn "hello world"
+main = interact $ show . solve . map ((map read) . words) . lines
