@@ -1,5 +1,7 @@
 module Main where
 
+import Control.Arrow ((&&&))
+
 import Data.List (maximumBy)
 import Data.Ord (comparing, Down(..))
 
@@ -26,10 +28,14 @@ unique :: Eq a => [a] -> Bool
 unique [] = True
 unique (x:xs) = not $ x `elem` xs
 
-part1 :: [Int] -> Int
-part1 banks = let allStates = iterations shuffle banks
-                  repetitions = dropWhile unique allStates
-              in length (head repetitions) - 1
+solve :: [Int] -> [[Int]]
+solve = head . dropWhile unique . iterations shuffle
+
+part1 :: [[Int]] -> Int
+part1 = pred . length
+
+part2 :: [[Int]] -> Int
+part2 (x:xs) = 1 + length (takeWhile (/= x) xs)
 
 main :: IO ()
-main = interact $ show . part1 . map read . words . head . lines
+main = interact $ show . (part1 &&& part2) . solve . map read . words . head . lines
