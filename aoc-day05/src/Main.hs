@@ -1,6 +1,8 @@
 module Main where
 
-data Zipper a = Zipper [a] a [a]
+import Control.Arrow ((&&&))
+
+data Zipper a = Zipper ![a] !a ![a]
 
 left :: Zipper a -> Maybe (Zipper a)
 left (Zipper [] _ _) = Nothing
@@ -24,16 +26,21 @@ move :: (a -> Maybe a) -> Int -> a -> Maybe a
 move f 0 x = Just x
 move f n x = f x >>= move f (n - 1)
 
-part1 :: Zipper Int -> Int
-part1 = go 1
+solve :: (Int -> Int) -> Zipper Int -> Int
+solve f = go 1
   where go n program = let amt = focus program
                            (dir, dist) = if (amt < 0)
                                          then (left, (- amt))
                                          else (right, amt)
-                           program' = modify (+ 1) program
+                           program' = modify f program
                        in case (move dir dist program') of
                          Nothing -> n
                          (Just program'') -> go (n + 1) program''
 
+part1 = solve (+ 1)
+part2 = solve f
+  where f n | n >= 3 = n - 1
+            | otherwise = n + 1
+
 main :: IO ()
-main = interact $ show . part1 . fromList . map read . lines
+main = interact $ show . (part1 &&& part2) . fromList . map read . lines
