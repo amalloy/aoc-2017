@@ -9,16 +9,16 @@ iterations f x = go [x]
   where go all@(curr:prev) = all : go (f curr : all)
 
 target :: [Int] -> (Int, Int)
-target xs = let (sz, (Down idx)) = (maximum $ zip xs (map Down [0..]))
+target xs = let (sz, (Down idx)) = maximum $ zip xs (map Down [0..])
             in (idx, sz)
 
 shuffle :: [Int] -> [Int]
 shuffle xs = let (bank, size) = target xs
                  len = length xs
-                 resize i amt | i == bank = size `div` len
-                              | otherwise = size `div` len + amt + leftover
-                   where leftover | size `mod` len >= (i - bank) `mod` len = 1
-                                  | otherwise = 0
+                 resize i amt = (size `div` len) + etc
+                   where etc | i == bank = 0
+                             | size `mod` len < (i - bank) `mod` len = amt
+                             | otherwise = amt + 1
              in zipWith resize [0..] xs
 
 unique :: Eq a => [a] -> Bool
