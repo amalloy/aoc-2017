@@ -41,8 +41,9 @@ part1 :: [Instr] -> Int
 part1 program = let regs = foldl' apply M.empty program
                 in maximum . M.elems $ regs
 
-part2 :: a -> ()
-part2 = const ()
+part2 :: [Instr] -> Int
+part2 program = let states = scanl apply M.empty program
+                in maximum . map (maximum . (0:) . M.elems) $ states
 
 main :: IO ()
 main = interact $ show . (part1 &&& part2) . map (parse . words) . lines
