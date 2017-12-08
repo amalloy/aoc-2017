@@ -1,6 +1,7 @@
 module Main where
 
 import Control.Arrow ((&&&))
+import Data.Coerce
 
 import Data.Ord (Down(..))
 
@@ -9,7 +10,7 @@ iterations f x = go [x]
   where go all@(curr:prev) = all : go (f curr : all)
 
 target :: [Int] -> (Int, Int)
-target xs = let (sz, (Down idx)) = maximum $ zip xs (map Down [0..])
+target xs = let (sz, (Down idx)) = maximum $ zip xs (coerce [0 :: Int ..])
             in (idx, sz)
 
 shuffle :: [Int] -> [Int]
