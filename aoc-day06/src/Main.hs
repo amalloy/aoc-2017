@@ -13,13 +13,13 @@ target xs = let (sz, (Down idx)) = maximum $ zip xs (map Down [0..])
             in (idx, sz)
 
 shuffle :: [Int] -> [Int]
-shuffle xs = let (bank, size) = target xs
-                 len = length xs
-                 resize i amt = (size `div` len) + etc
-                   where etc | i == bank = 0
-                             | size `mod` len < (i - bank) `mod` len = amt
-                             | otherwise = amt + 1
-             in zipWith resize [0..] xs
+shuffle xs = zipWith resize [0..] xs
+  where (bank, size) = target xs
+        len = length xs
+        resize i amt = (size `div` len) + etc
+          where etc | i == bank = 0
+                    | size `mod` len < (i - bank) `mod` len = amt
+                    | otherwise = amt + 1
 
 unique :: Eq a => [a] -> Bool
 unique [] = True
