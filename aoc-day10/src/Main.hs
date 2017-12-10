@@ -2,6 +2,10 @@ module Main where
 
 import Control.Arrow ((&&&))
 
+import Data.Bits (xor)
+import Data.Char (intToDigit, ord)
+import Data.List (foldl')
+
 data LS a = LS {_s :: [a],
                 _len :: Int}
             deriving Show
@@ -28,8 +32,20 @@ part1 = answer . foldl step initState
   where answer = product . take 2 . _s . _string
         initState = mkState 256
 
-part2 :: a -> ()
-part2 = const ()
+chunksOf :: Int -> [a] -> [[a]]
+chunksOf n [] = []
+chunksOf n xs = take n xs : chunksOf n (drop n xs)
+
+hex :: Int -> String
+hex x = intToDigit (x `div` 16) : [intToDigit (x `mod` 16)]
+
+part2 :: [Int] -> String
+part2 lengths =
+  let lengths' = lengths ++ [17, 31, 73, 47, 23]
+      rounds = concat . replicate 64 $ lengths'
+      sparseHash = foldl step (mkState 256) rounds
+      denseHash = map (foldl' xor 0) . chunksOf 16 . _s . _string $ sparseHash
+  in denseHash >>= hex
 
 parse :: String -> [Int]
 parse = fmap read . split
@@ -38,4 +54,4 @@ parse = fmap read . split
           (num, "") -> [num]
 
 main :: IO ()
-main = interact $ show . (part1 &&& part2) .  parse . head . lines
+main = interact $ show . (part1 . parse &&& part2 . map ord) . head . lines
