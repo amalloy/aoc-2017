@@ -37,7 +37,7 @@ chunksOf n [] = []
 chunksOf n xs = take n xs : chunksOf n (drop n xs)
 
 hex :: Int -> String
-hex x = intToDigit (x `div` 16) : [intToDigit (x `mod` 16)]
+hex x = [intToDigit (x `div` 16), intToDigit (x `mod` 16)]
 
 part2 :: [Int] -> String
 part2 lengths =
@@ -48,7 +48,7 @@ part2 lengths =
   in denseHash >>= hex
 
 parse :: String -> [Int]
-parse = fmap read . split
+parse = map read . split
   where split s = case break (== ',') s of
           (num, (',':more)) -> num : split more
           (num, "") -> [num]
