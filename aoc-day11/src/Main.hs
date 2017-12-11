@@ -3,6 +3,7 @@ module Main where
 import Control.Arrow ((&&&))
 
 import Data.Monoid
+import Data.Foldable (foldMap)
 
 type Coord a = (Sum a, Sum a, Sum a)
 
@@ -19,7 +20,7 @@ dir s = (Sum x, Sum y, Sum z)
 dist :: (Num a, Ord a) => Coord a -> a
 dist (Sum x, Sum y, Sum z) = maximum . map abs $ [x,y,z]
 
-part1 = dist . mconcat . map dir
+part1 = dist . foldMap dir
 
 part2 :: [String] -> Int
 part2 = maximum . map dist . scanl mappend mempty . map dir
