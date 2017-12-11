@@ -21,8 +21,8 @@ dist (Sum x, Sum y, Sum z) = maximum . map abs $ [x,y,z]
 
 part1 = dist . mconcat . map dir
 
-part2 :: a -> ()
-part2 = const ()
+part2 :: [String] -> Int
+part2 = maximum . map dist . scanl mappend mempty . map dir
 
 split :: String -> [String]
 split s = case break (== ',') s of
