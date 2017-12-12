@@ -5,6 +5,7 @@ import Control.Arrow ((&&&))
 import qualified Data.Map.Strict as M
 import Control.Monad.Trans.State.Lazy
 import Control.Monad (when)
+import Data.List (nub)
 
 
 type Program = Int
@@ -54,7 +55,8 @@ part1 :: Directory -> Int
 part1 m = length . filter ((== goal) . parent) . M.elems $ m
   where (PI goal _) = m M.! 0
 
-part2 = const ()
+part2 :: Directory -> Int
+part2 = length . nub . map parent . M.elems
 
 main :: IO ()
 main = interact $ show . (part1 &&& part2) . flatten . map (parse . words) . lines
