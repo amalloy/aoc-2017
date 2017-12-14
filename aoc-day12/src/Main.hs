@@ -11,7 +11,7 @@ import Data.List (nub)
 type Program = Int
 data ProgInfo = PI {parent :: Program,
                     rank :: Int} deriving Show
-type Directory = (M.Map Program ProgInfo)
+type Directory = M.Map Program ProgInfo
 type Lookup a = State Directory a
 
 
@@ -34,12 +34,12 @@ union :: Program -> Program -> Lookup ()
 union x y = do
   xn@(PI xRoot xRank) <- find x
   yn@(PI yRoot yRank) <- find y
-  when (xRoot /= yRoot) $ do
-    case compare xRank yRank of
-      LT -> modify $ M.insert xRoot yn
-      GT -> modify $ M.insert yRoot xn
-      EQ -> modify . M.union $ M.fromList [(yRoot, xn),
-                                           (xRoot, (PI xRoot (succ xRank)))]
+  when (xRoot /= yRoot) $
+    modify $ case compare xRank yRank of
+      LT -> M.insert xRoot yn
+      GT -> M.insert yRoot xn
+      EQ -> M.union $ M.fromList [(yRoot, xn),
+                                  (xRoot, (PI xRoot (succ xRank)))]
 
 parse :: [String] -> [Program]
 parse (p:"<->":progs) = read <$> p : map (filter (/= ',')) progs
