@@ -1,5 +1,7 @@
 module Main where
 
+import KnotHash (knot)
+
 import Control.Arrow ((&&&))
 
 part1 :: a -> ()
