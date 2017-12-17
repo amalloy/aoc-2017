@@ -1,6 +1,7 @@
 module Main where
 
 import Control.Arrow ((&&&))
+import qualified Data.Map.Strict as M
 
 data Op = Spin Int | Exchange Int Int | Partner Char Char
 
@@ -29,14 +30,21 @@ split s = case break (== ',') s of
   (before, ',':after) -> before : split after
   (before, "") -> [before]
 
-states :: [Op] -> [String]
-states = scanl apply ['a'..'p']
+dance :: [Op] -> String -> String
+dance = flip (foldl apply)
 
-part1 :: [String] -> String
-part1 = last
+shortcut :: Ord a => (a -> a) -> Int -> a -> a
+shortcut f = go M.empty
+  where go m 0 x = x
+        go m n x = case M.lookup x m of
+          Nothing -> go (M.insert x n m) (n - 1) (f x)
+          Just prev -> shortcut f (n `mod` (prev - n)) x
 
-part2 :: a -> ()
-part2 = const ()
+part1 :: [Op] -> String
+part1 = flip dance ['a'..'p']
+
+part2 :: [Op] -> String
+part2 ops = shortcut (dance ops) 1000000000 ['a'..'p']
 
 main :: IO ()
-main = interact $ show . (part1 &&& part2) . states . map parse . split . head . lines
+main = interact $ show . (part1 &&& part2) . map parse . split . head . lines
