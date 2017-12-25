@@ -1,7 +1,7 @@
 module Main where
 
 import Control.Arrow ((&&&))
-import Data.List (foldl')
+import Data.List (foldl', scanl)
 
 data Zipper a = Zipper ![a] !a ![a]
 
@@ -24,8 +24,10 @@ part1 :: Int -> Int
 part1 stepSize = focus . right . foldl' step (fromList [0]) $ [1..2017]
   where step curr new = insertRight new . (!! stepSize) . iterate right $ curr
 
-part2 :: a -> ()
-part2 = const ()
+part2 :: Int -> Int
+part2 stepSize = snd . last . filter ((== 0) . fst)
+                 . scanl step (0,0) $ [1..50000000]
+  where step (afterPosn, value) n = ((afterPosn + stepSize) `mod` n, n)
 
 main :: IO ()
 main = interact $ show . (part1 &&& part2) . read . head . lines
