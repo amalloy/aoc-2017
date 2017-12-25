@@ -2,6 +2,7 @@ module Main where
 
 import Control.Arrow ((&&&))
 import qualified Data.Map.Strict as M
+import Data.Maybe (catMaybes)
 import Text.Parsec
 import Text.Parsec.Char
 import Text.Parsec.Token (integer)
@@ -17,13 +18,39 @@ data Instruction = Sound Arg
                  | JumpPos Arg Arg
                  deriving (Show)
 
-data Computer = Computer [Instruction] Int (M.Map Register Int) (Maybe Int)
+data Computer = Computer {instrs :: [Instruction],
+                          ip :: Int,
+                          regs :: M.Map Register Int,
+                          sound :: Maybe Int,
+                          recovered :: Maybe Int}
+                deriving (Show)
 
 mutate :: Mutation -> Int -> Int -> Int
-mutate Set = flip const
+mutate Set = const
 mutate Add = (+)
 mutate Mul = (*)
-mutate Mod = mod
+mutate Mod = flip mod
+
+eval :: Arg -> Computer -> Int
+eval (Lit x) c = x
+eval (Reg r) c = M.findWithDefault 0 r (regs c)
+
+runInstruction :: Computer -> Computer
+runInstruction c@(Computer prog ip regs prevSound recvd) =
+  let instr = prog !! ip
+      nextIP = ip + case instr of
+        JumpPos test offset | eval test c > 0 -> eval offset c
+        _ -> 1
+      state = case instr of
+        Sound arg -> c {sound = Just $ eval arg c}
+        Recover arg | eval arg c == 0 -> c
+                    | otherwise -> c {recovered = sound c}
+        Mutate m r arg -> c {regs = M.insert r (mutate m
+                                                (eval arg c)
+                                                (eval (Reg r) c))
+                                    regs}
+        JumpPos _ _ -> c
+  in state {ip = nextIP}
 
 int :: Parser Int
 int = do
@@ -59,7 +86,12 @@ instruction = mut "set" Set
 program :: Parser [Instruction]
 program = instruction `endBy1` newline <* eof
 
-part1 = id
+-- Less cluttered output, for visual debugging
+debug c = (instrs c !! ip c, regs c, sound c, recovered c)
+
+part1 instructions = head . catMaybes . map recovered $ states
+  where states = iterate runInstruction $
+                 Computer instructions 0 M.empty Nothing Nothing
 
 part2 :: a -> ()
 part2 = const ()
