@@ -24,10 +24,13 @@ part1 :: Int -> Int
 part1 stepSize = focus . right . foldl' step (fromList [0]) $ [1..2017]
   where step curr new = insertRight new . (!! stepSize) . iterate right $ curr
 
+afterZero :: Int -> Int -> Int
+afterZero numInserts stepSize =
+  snd . last . filter ((== 0) . fst) . scanl step (0,0) $ [1..numInserts]
+  where step (afterPosn, value) n = ((afterPosn + stepSize + 1) `mod` n, n)
+
 part2 :: Int -> Int
-part2 stepSize = snd . last . filter ((== 0) . fst)
-                 . scanl step (0,0) $ [1..50000000]
-  where step (afterPosn, value) n = ((afterPosn + stepSize) `mod` n, n)
+part2 = afterZero 50000000
 
 main :: IO ()
 main = interact $ show . (part1 &&& part2) . read . head . lines
