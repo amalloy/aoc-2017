@@ -110,7 +110,7 @@ part1 instructions = go Nothing $ Computer instructions 0 M.empty
           (c', io@(S arg)) -> go (Just (eval arg c')) c'
           (c', io@(R arg)) | eval arg c' /= 0 -> sound
                            | otherwise -> go sound c'
-          (c', Abort) -> error "aborted"
+          (c', Abort) -> Nothing
 
 part2 :: [Instruction] -> Int
 part2 instructions = go (Supervisor 0 <$> mkProcess 0
@@ -136,7 +136,7 @@ part2 instructions = go (Supervisor 0 <$> mkProcess 0
                   (Runnable, _) -> case runUntilIO c2 of
                     (_, Abort) ->  numSends
                     (c2', S arg) -> go (Supervisor numSends
-                                        (Process state1 (inputs1 S.|> eval arg c2') c2')
+                                        (Process state1 (inputs1 S.|> eval arg c2') c1)
                                         (Process Runnable inputs2 c2'))
                     (c2', R (Reg r)) -> go (Supervisor numSends p1
                                             (Process (Blocked r) inputs2 c2'))
