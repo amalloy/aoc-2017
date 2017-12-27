@@ -34,10 +34,10 @@ asMap :: [Coord Int] -> Group
 asMap = M.fromList . flip zip [0..]
 
 neighbors :: Num a => Coord a -> [Coord a]
-neighbors (y, x) = [(y + dy, x + dx) | (dy, dx) <- zip [0,0,1,-1] [1,-1,0,0]]
+neighbors (y, x) = [(y + dy, x + dx) | (dy, dx) <- zip [0,-1] [-1,0]]
 
 spread :: Coord Int -> Group -> Group
-spread k m = m `deepseq` foldr relabel m (nub adjs)
+spread k m = (m `deepseq` foldr relabel m) . nub . filter (/= new) $ adjs
   where adjs = catMaybes . map (`M.lookup` m) $ neighbors k
         new = m M.! k
         relabel old = fmap replace
