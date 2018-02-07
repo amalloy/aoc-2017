@@ -1,13 +1,28 @@
+{-# LANGUAGE DeriveFunctor, DeriveFoldable #-}
+
 module Main where
 
+import Data.List (maximumBy)
+import Data.Ord (comparing, Down(..))
 import qualified Text.Parsec as P
 import Text.Parsec.String (Parser)
 import Text.Parsec.Char (newline, char, string, spaces, digit)
 
 import Control.Arrow ((&&&))
 
-data Vector a = Vector a a a deriving Show
+data Vector a = Vector a a a deriving (Show, Functor, Foldable)
 data Particle a = Particle {acceleration, velocity, position :: Vector a} deriving Show
+
+direction :: Num a => Vector a -> Vector a
+direction = fmap signum
+
+magnitude :: (Num a, Eq a) => Vector a -> Vector a -> a
+magnitude (Vector ux uy uz) (Vector x y z) = sum (zipWith along [x, y, z] [ux, uy, uz])
+  where n `along` 0 = abs n
+        n `along` sign = n * sign
+
+tieBreakers :: (Num a, Eq a) => Particle a -> [a]
+tieBreakers (Particle a v p) = map (magnitude (direction a)) [a, v, p]
 
 field :: Parser [Particle Int]
 field = particle `P.endBy` newline
@@ -43,11 +58,8 @@ parse s = case P.parse field "" s of
   Left e -> error $ show e
   Right field -> field
 
--- todo: collapse each particle into 1d vectors in the direction of acceleration
--- comparing those by tiebreakers should work
-
--- part1 :: [Particle Int] -> ()
-part1 = id
+part1 :: [Particle Int] -> Int
+part1 = fst . maximumBy (comparing (Down . tieBreakers . snd)) . zip [0..]
 
 part2 :: a -> ()
 part2 = const ()
