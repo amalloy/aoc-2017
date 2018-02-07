@@ -29,10 +29,8 @@ field = particle `P.endBy` newline
 
 particle :: Parser (Particle Int)
 particle = do
-  p <- vector 'p'
-  delim
-  v <- vector 'v'
-  delim
+  p <- vector 'p' <* delim
+  v <- vector 'v' <* delim
   a <- vector 'a'
   pure $ Particle a v p
   where delim = char ',' *> spaces
@@ -40,12 +38,9 @@ particle = do
 vector :: Char -> Parser (Vector Int)
 vector label = do
   string $ label : "=<"
-  x <- int
-  char ','
-  y <- int
-  char ','
-  z <- int
-  char '>'
+  x <- int <* char ','
+  y <- int <* char ','
+  z <- int <* char '>'
   pure $ Vector x y z
 
 int :: Parser Int
