@@ -11,6 +11,7 @@ newtype Dir a = Dir (a, a) deriving Show
 data Loc label = Die | Turn | Straight (Maybe label) deriving (Show, Eq)
 type Diagram = Array (Coord Int) (Loc Char)
 data State = State (Dir Int) (Coord Int) deriving Show
+type Path = [(Coord Int, Loc Char)]
 
 loc :: Char -> Loc Char
 loc ' ' = Die
@@ -47,15 +48,15 @@ follow grid = go
 initState :: Diagram -> State
 initState g = head [State (Dir (1, 0)) pos | (pos, (Straight _)) <- assocs g]
 
-path :: Diagram -> [(Coord Int, Loc Char)]
+path :: Diagram -> Path
 path grid = let visited = W.execWriter (follow grid (initState grid))
             in [(pos, grid ! pos) | pos <- visited]
 
-part1 :: Diagram -> String
-part1 grid = [label | (_, Straight (Just label)) <- path grid]
+part1 :: Path -> String
+part1 path = [label | (_, Straight (Just label)) <- path]
 
-part2 :: a -> ()
-part2 = const ()
+part2 :: Path -> Int
+part2 = length
 
 main :: IO ()
-main = interact $ show . (part1 &&& part2) . parse . lines
+main = interact $ show . (part1 &&& part2) . path . parse . lines
